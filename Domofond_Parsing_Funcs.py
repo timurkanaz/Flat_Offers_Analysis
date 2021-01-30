@@ -178,8 +178,8 @@ def work_with_tuples(tuples):
         floor.append(tup[6])
         total_floor.append(tup[7])
         area.append(tup[4])
-    df=pd.DataFrame([ids,addr,distr,LAT,LON,material,price,ppm,rooms,floor,total_floor]).T
-    df.columns=["id","Address","District","LAT","LON","Material","Price","Price_per_msq","Rooms","Floor","Total_Floors"]
+    df=pd.DataFrame([ids,addr,distr,LAT,LON,material,price,area,ppm,rooms,floor,total_floor]).T
+    df.columns=["id","Address","District","LAT","LON","Material","Price","Area","Price_per_msq","Rooms","Floor","Total_Floors"]
     df.drop_duplicates("id",inplace=True)
     df.id=df.id.astype("int64")
     df.LAT=df.LAT.astype("float")
