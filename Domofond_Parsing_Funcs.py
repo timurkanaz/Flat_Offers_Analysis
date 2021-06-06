@@ -10,11 +10,16 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 r.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from multiprocessing.pool import ThreadPool
 import time
-import os
+from selenium import webdriver
 from datetime import datetime as dt
 
-Link="https://www.domofond.ru/prodazha-nedvizhimosti/search?DistrictIds=676%2C677%2C679%2C678%2C680%2C681%2C675&PropertyTypeDescription=kvartiry&Rooms=Studio%2COne%2CTwo%2CThree%2CFour%2CFive%2CSix%2CSeven%2CEight%2CNine%2CMoreThan9&Page={}"
-Git_path="C://Users//timna//OneDrive//Документы//Flat_Offers_Analysis//Data__{}.xlsx"
+
+browser=webdriver.Chrome()
+
+Link="https://www.domofond.ru/prodazha-nedvizhimosti/search?DistrictIds=676%2C677%2C679%2C678%2C680%2C681%2C675&Page={}"
+Git_Path="C://Users//timna//OneDrive//Документы//Flat_Offers_Analysis//Data__{}.xlsx"
+Path="Data__{}.xlsx"
+Pics_Path="Pics_{}.xlsx"
 
 desktop_agents = ['Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
                  'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
@@ -53,7 +58,6 @@ def get_last_page_and_divide():
     pages_divided=list(np.array_split(pages,4))
     nums=[1,2,3,4]
     pages_divided=list(zip(nums,pages_divided))
-    #os.system("clear")
     return pages_divided
 
 
@@ -70,7 +74,20 @@ def do_post(j):
     return post_content
         
 
-
+def get_pics(href):
+    z=0
+    while z==0:
+        try:
+            browser.get("https://www.domofond.ru"+href)
+            soup=bs(browser.page_source,"lxml")
+            imgs=soup.find_all("div",{"class":"img__cover___3zeI6 gallery__cover___2u8vz"})
+            if len(imgs)==0:
+                imgs=soup.find_all("div",{"class":"img__cover___3zeI6 gallery__cover___2u8vz gallery__selected___ljEWu"})
+            li=[i.find_all("img")[0]["src"] for i in imgs]
+            return li
+        except:
+            time.sleep(45)
+    
 def get_info_from_json(href):
     i=0
     try:
@@ -94,7 +111,8 @@ def get_info_from_json(href):
             distr1=data["district"]["name"]
         except:
             distr1=np.nan
-        return (i,(id1,lat,lon,price1,area1,ppm1,floor1,total_floor1,rooms1,material1,addr1,distr1))
+        pictures=get_pics(href)
+        return (i,(id1,lat,lon,price1,area1,ppm1,floor1,total_floor1,rooms1,material1,addr1,distr1,pictures))
     except:
         return (i,"Error")
 
@@ -143,7 +161,6 @@ def parsing(pages_divided):
     pool = ThreadPool(4)
     print("Начинаю просматривать страницы..")
     l=pool.map(get_hrefs_and_info,pages_divided)
-    #os.system('clear')
     print("Парсинг окончен.Работаю с данными...")
     tuples=[]
     for part in l:
@@ -165,6 +182,8 @@ def work_with_tuples(tuples):
     material=[]
     distr=[]
     addr=[]
+    id_sdf=[]
+    pics_hrefs_sdf=[]
     for tup in tuples:
         ids.append(tup[0])
         addr.append(tup[10])
@@ -178,6 +197,11 @@ def work_with_tuples(tuples):
         floor.append(tup[6])
         total_floor.append(tup[7])
         area.append(tup[4])
+        pictures=tup[-1]
+        for p in pictures:
+            id_sdf.append(tup[0])
+            pics_hrefs_sdf.append(p)
+        
     df=pd.DataFrame([ids,addr,distr,LAT,LON,material,price,area,ppm,rooms,floor,total_floor]).T
     df.columns=["id","Address","District","LAT","LON","Material","Price","Area","Price_per_msq","Rooms","Floor","Total_Floors"]
     df.drop_duplicates("id",inplace=True)
@@ -188,7 +212,10 @@ def work_with_tuples(tuples):
     df.Price_per_msq=df.Price_per_msq.astype("float")
     df.Floor=df.Floor.astype("int")
     df.Total_Floors=df.Total_Floors.astype("int")
-    #os.system("clear")
+    df_wp=pd.DataFrame([id_sdf,pics_hrefs_sdf]).T
+    df_wp.columns=["id","pic_href"]
+    df_wp.drop_duplicates("pic_href",inplace=True,ignore_index=True)
+    df_wp.to_excel(Pics_Path.format(dt.now().strftime("%d-%m-%Y__%H-%M")),index=False)
     return df
 
 
@@ -198,9 +225,8 @@ def save(df):
     ct=dt.now()
     ct=ct.strftime("%d-%m-%Y__%H-%M")
     print("Сохраняем данные...")
-    #os.system("clear")
     print("Данные на момент {} сохранены!".format(ct))
-    df.to_excel(Git_path.format(ct),index=False)
+    df.to_excel(Path.format(ct),index=False)
     return ct
 
 
