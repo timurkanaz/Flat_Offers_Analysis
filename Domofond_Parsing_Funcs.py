@@ -105,7 +105,11 @@ def get_info_from_json(href):
         floor1=int(data["floorInt"])
         total_floor1=int(data["floorString"].split("/")[1])
         rooms1=(data["rooms"])
-        material1=data["detailGroups"][0]["details"][9]["value"]
+        material_dict=data["detailGroups"][0]["details"]
+        material1=""
+        for val in material_dict:
+            if val["name"]=='Материал здания':
+                material1=val["value"]
         addr1=(data["address"])
         try:
             distr1=data["district"]["name"]
