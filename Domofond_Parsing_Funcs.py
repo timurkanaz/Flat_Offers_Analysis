@@ -17,9 +17,9 @@ from datetime import datetime as dt
 browser=webdriver.Chrome()
 
 Link="https://www.domofond.ru/prodazha-nedvizhimosti/search?DistrictIds=676%2C677%2C679%2C678%2C680%2C681%2C675&Page={}"
-Git_Path="C://Users//timna//OneDrive//Документы//Flat_Offers_Analysis//Data__{}.xlsx"
-Path="Data__{}.xlsx"
-Pics_Path="Pics_{}.xlsx"
+Git_Path="C://Users//timna//OneDrive//Документы//Flat_Offers_Analysis//Result_Data//Data__{}.xlsx"
+Path="Result_Data//Data__{}.xlsx"
+Pics_Path="Result_Data//Pics_{}.xlsx"
 
 desktop_agents = ['Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
                  'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
